@@ -1,13 +1,11 @@
 class Expense {
   final String id;
   final double amount;
-  final String categoryId;
+  final String categoryId; // This will link to ExpenseCategory
   final String payee;
   final String note;
   final DateTime date;
-  final String tag;
-
-  // Part 1: Default Constructor
+  final String tag; // This assumes you have a tagging system. Adjust if needed.
   Expense({
     required this.id,
     required this.amount,
@@ -17,9 +15,7 @@ class Expense {
     required this.date,
     required this.tag,
   });
-
-  // Part 2: fromJson Factory Constructor
-  // Converts a JSON Map into an Expense object.
+  // Convert a JSON object to an Expense instance
   factory Expense.fromJson(Map<String, dynamic> json) {
     return Expense(
       id: json['id'],
@@ -27,14 +23,11 @@ class Expense {
       categoryId: json['categoryId'],
       payee: json['payee'],
       note: json['note'],
-      // Note the parsing required for the DateTime object
       date: DateTime.parse(json['date']),
       tag: json['tag'],
     );
   }
-
-  // Part 3: toJson Method
-  // Converts the Expense object into a JSON Map.
+  // Convert an Expense instance to a JSON object
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -42,7 +35,6 @@ class Expense {
       'categoryId': categoryId,
       'payee': payee,
       'note': note,
-      // DateTime must be converted to a String standard format (ISO 8601) for JSON storage
       'date': date.toIso8601String(),
       'tag': tag,
     };

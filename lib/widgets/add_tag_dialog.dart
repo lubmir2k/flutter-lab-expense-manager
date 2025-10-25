@@ -1,50 +1,48 @@
+import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
-
+import '../models/tag.dart';
+import '../providers/expense_provider.dart';
 class AddTagDialog extends StatefulWidget {
+  final Function(Tag) onAdd;
+  AddTagDialog({required this.onAdd});
   @override
   _AddTagDialogState createState() => _AddTagDialogState();
 }
-
 class _AddTagDialogState extends State<AddTagDialog> {
-  // Controller to capture the user's input for the tag name
-  final TextEditingController _nameController = TextEditingController();
-
+  final TextEditingController _controller = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Add Tag'),
+      title: Text('Add New Tag'),
       content: TextField(
-        controller: _nameController,
-        autofocus: true,
-        decoration: InputDecoration(labelText: 'Tag Name'),
+        controller: _controller,
+        decoration: InputDecoration(
+          labelText: 'Tag Name',
+        ),
       ),
-      actions: <Widget>[
-        // Cancel button
+      actions: [
         TextButton(
+          child: Text('Cancel'),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        TextButton(
+          child: Text('Add'),
           onPressed: () {
+            var newTag = Tag(id: DateTime.now().toString(), name: _controller.text);
+            widget.onAdd(newTag);
+            // Update the provider and UI
+            Provider.of<ExpenseProvider>(context, listen: false).addTag(newTag);
+            // Clear the input field for next input
+            _controller.clear();
             Navigator.of(context).pop();
           },
-          child: Text('Cancel'),
-        ),
-        // Add button
-        ElevatedButton(
-          onPressed: () {
-            final tagName = _nameController.text;
-            if (tagName.isNotEmpty) {
-              // Close the dialog and return the entered text
-              Navigator.of(context).pop(tagName);
-            }
-          },
-          child: Text('Add'),
         ),
       ],
     );
   }
-
   @override
   void dispose() {
-    // Dispose of the controller!
-    _nameController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 }
