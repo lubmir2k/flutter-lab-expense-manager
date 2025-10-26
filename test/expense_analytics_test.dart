@@ -62,22 +62,9 @@ void main() {
       });
 
       test('getExpensesByTimePeriod filters expenses within last 3 months', () {
-        // Calculate dates properly handling month rollover
-        int year3 = now.year;
-        int month3 = now.month - 3;
-        while (month3 <= 0) {
-          month3 += 12;
-          year3 -= 1;
-        }
-        final threeMonthsAgo = DateTime(year3, month3, now.day);
-
-        int year4 = now.year;
-        int month4 = now.month - 4;
-        while (month4 <= 0) {
-          month4 += 12;
-          year4 -= 1;
-        }
-        final fourMonthsAgo = DateTime(year4, month4, now.day);
+        // Dart's DateTime constructor handles month rollover automatically
+        final threeMonthsAgo = DateTime(now.year, now.month - 3, now.day);
+        final fourMonthsAgo = DateTime(now.year, now.month - 4, now.day);
 
         final expense1 = Expense(
           id: '1',
@@ -108,21 +95,8 @@ void main() {
       });
 
       test('getExpensesByTimePeriod filters expenses within last 6 months', () {
-        int year6 = now.year;
-        int month6 = now.month - 6;
-        while (month6 <= 0) {
-          month6 += 12;
-          year6 -= 1;
-        }
-        final sixMonthsAgo = DateTime(year6, month6, now.day);
-
-        int year7 = now.year;
-        int month7 = now.month - 7;
-        while (month7 <= 0) {
-          month7 += 12;
-          year7 -= 1;
-        }
-        final sevenMonthsAgo = DateTime(year7, month7, now.day);
+        final sixMonthsAgo = DateTime(now.year, now.month - 6, now.day);
+        final sevenMonthsAgo = DateTime(now.year, now.month - 7, now.day);
 
         final expense1 = Expense(
           id: '1',
@@ -154,15 +128,8 @@ void main() {
 
       test('getExpensesByTimePeriod filters expenses within last 12 months',
           () {
-        final twelveMonthsAgo = DateTime(now.year - 1, now.month, now.day);
-
-        int year13 = now.year;
-        int month13 = now.month - 13;
-        while (month13 <= 0) {
-          month13 += 12;
-          year13 -= 1;
-        }
-        final thirteenMonthsAgo = DateTime(year13, month13, now.day);
+        final twelveMonthsAgo = DateTime(now.year, now.month - 12, now.day);
+        final thirteenMonthsAgo = DateTime(now.year, now.month - 13, now.day);
 
         final expense1 = Expense(
           id: '1',

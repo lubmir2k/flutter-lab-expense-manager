@@ -164,17 +164,8 @@ class ExpenseProvider with ChangeNotifier {
     final now = DateTime.now();
     final months = period.months!;
 
-    // Calculate cutoff date by subtracting months properly
-    int targetYear = now.year;
-    int targetMonth = now.month - months;
-
-    // Handle year rollover
-    while (targetMonth <= 0) {
-      targetMonth += 12;
-      targetYear -= 1;
-    }
-
-    final cutoffDate = DateTime(targetYear, targetMonth, now.day);
+    // Dart's DateTime constructor handles negative months automatically
+    final cutoffDate = DateTime(now.year, now.month - months, now.day);
 
     return _expenses.where((expense) {
       return expense.date.isAfter(cutoffDate) || expense.date.isAtSameMomentAs(cutoffDate);
@@ -226,7 +217,7 @@ class ExpenseProvider with ChangeNotifier {
         orElse: () => ExpenseCategory(id: entry.key, name: 'Unknown'),
       );
 
-      final percentage = (entry.value / grandTotal) * 100;
+      final percentage = grandTotal > 0 ? (entry.value / grandTotal) * 100 : 0.0;
       final color = categoryColors[colorIndex % categoryColors.length];
 
       chartDataList.add(CategoryChartData(
