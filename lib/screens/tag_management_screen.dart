@@ -3,11 +3,13 @@ import 'package:provider/provider.dart';
 import '../providers/expense_provider.dart';
 import '../widgets/add_tag_dialog.dart';
 class TagManagementScreen extends StatelessWidget {
+  const TagManagementScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Manage Tags"),
+        title: const Text("Manage Tags"),
         backgroundColor: Colors.deepPurple, // Themed color similar to your inspirations
         foregroundColor: Colors.white,
       ),
@@ -20,7 +22,7 @@ class TagManagementScreen extends StatelessWidget {
               return ListTile(
                 title: Text(tag.name),
                 trailing: IconButton(
-                  icon: Icon(Icons.delete, color: Colors.red),
+                  icon: const Icon(Icons.delete, color: Colors.red),
                   onPressed: () {
                     // Delete the tag
                     provider.deleteTag(tag.id);
@@ -44,7 +46,7 @@ class TagManagementScreen extends StatelessWidget {
           );
         },
         tooltip: 'Add New Tag',
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }

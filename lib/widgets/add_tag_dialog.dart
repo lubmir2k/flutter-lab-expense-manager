@@ -4,7 +4,7 @@ import '../models/tag.dart';
 import '../providers/expense_provider.dart';
 class AddTagDialog extends StatefulWidget {
   final Function(Tag) onAdd;
-  AddTagDialog({required this.onAdd});
+  const AddTagDialog({super.key, required this.onAdd});
   @override
   _AddTagDialogState createState() => _AddTagDialogState();
 }
@@ -13,20 +13,20 @@ class _AddTagDialogState extends State<AddTagDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Add New Tag'),
+      title: const Text('Add New Tag'),
       content: TextField(
         controller: _controller,
-        decoration: InputDecoration(
+        decoration: const InputDecoration(
           labelText: 'Tag Name',
         ),
       ),
       actions: [
         TextButton(
-          child: Text('Cancel'),
+          child: const Text('Cancel'),
           onPressed: () => Navigator.of(context).pop(),
         ),
         TextButton(
-          child: Text('Add'),
+          child: const Text('Add'),
           onPressed: () {
             var newTag = Tag(id: DateTime.now().toString(), name: _controller.text);
             widget.onAdd(newTag);
