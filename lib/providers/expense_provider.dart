@@ -173,7 +173,12 @@ class ExpenseProvider with ChangeNotifier {
   }
 
   /// Get category chart data with totals and percentages
-  List<CategoryChartData> getCategoryChartData(ChartTimePeriod period) {
+  ///
+  /// [colors] - Optional list of colors for categories. If not provided, uses default palette.
+  List<CategoryChartData> getCategoryChartData(
+    ChartTimePeriod period, {
+    List<Color>? colors,
+  }) {
     final filteredExpenses = getExpensesByTimePeriod(period);
 
     if (filteredExpenses.isEmpty) {
@@ -193,8 +198,8 @@ class ExpenseProvider with ChangeNotifier {
           (categoryTotals[expense.categoryId] ?? 0.0) + expense.amount;
     }
 
-    // Define colors for categories
-    final categoryColors = [
+    // Use provided colors or default palette
+    final categoryColors = colors ?? [
       Colors.deepPurple,
       Colors.blue,
       Colors.green,
