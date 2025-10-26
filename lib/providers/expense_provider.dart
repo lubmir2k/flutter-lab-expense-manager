@@ -85,23 +85,16 @@ class ExpenseProvider with ChangeNotifier {
         _expenses = List<Expense>.from(
           (jsonDecode(storedExpenses) as List).map((item) => Expense.fromJson(item)),
         );
-        _invalidateSortedExpensesCache();
-        notifyListeners();
-      } catch (e) {
+      } catch (e, s) {
+        // Log the error and stack trace for better debugging
+        debugPrint('Failed to load expenses from storage. Error: $e\nStack trace: $s');
         // Clear corrupted data for expenses only
         storage.removeItem('expenses');
         _expenses = [];
-        _invalidateSortedExpensesCache();
-        notifyListeners();
       }
+      _invalidateSortedExpensesCache();
+      notifyListeners();
     }
-  }
-  // Add an expense
-  void addExpense(Expense expense) {
-    _expenses.add(expense);
-    _invalidateSortedExpensesCache();
-    _saveExpensesToStorage();
-    notifyListeners();
   }
   void _saveExpensesToStorage() {
     storage.setItem(
@@ -116,13 +109,6 @@ class ExpenseProvider with ChangeNotifier {
       // Add new expense
       _expenses.add(expense);
     }
-    _invalidateSortedExpensesCache();
-    _saveExpensesToStorage(); // Save the updated list to local storage
-    notifyListeners();
-  }
-  // Delete an expense
-  void deleteExpense(String id) {
-    _expenses.removeWhere((expense) => expense.id == id);
     _invalidateSortedExpensesCache();
     _saveExpensesToStorage(); // Save the updated list to local storage
     notifyListeners();
