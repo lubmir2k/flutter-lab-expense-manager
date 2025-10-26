@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/expense.dart';
+import '../models/expense_filter_options.dart';
 import '../providers/expense_provider.dart';
 import 'add_expense_screen.dart';
 import 'category_management_screen.dart';
@@ -48,37 +49,110 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     return result ?? false;
   }
 
+  void _showSortMenu(BuildContext context, ExpenseProvider provider) {
+    showMenu(
+      context: context,
+      position: RelativeRect.fromLTRB(1000, 80, 0, 0),
+      items: [
+        PopupMenuItem(
+          value: SortBy.dateNewest,
+          child: Row(
+            children: [
+              Icon(
+                provider.sortBy == SortBy.dateNewest ? Icons.check : Icons.check_box_outline_blank,
+                color: provider.sortBy == SortBy.dateNewest ? Theme.of(context).colorScheme.primary : Colors.transparent,
+              ),
+              SizedBox(width: 8),
+              Text('Newest First'),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: SortBy.dateOldest,
+          child: Row(
+            children: [
+              Icon(
+                provider.sortBy == SortBy.dateOldest ? Icons.check : Icons.check_box_outline_blank,
+                color: provider.sortBy == SortBy.dateOldest ? Theme.of(context).colorScheme.primary : Colors.transparent,
+              ),
+              SizedBox(width: 8),
+              Text('Oldest First'),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: SortBy.amountHighest,
+          child: Row(
+            children: [
+              Icon(
+                provider.sortBy == SortBy.amountHighest ? Icons.check : Icons.check_box_outline_blank,
+                color: provider.sortBy == SortBy.amountHighest ? Theme.of(context).colorScheme.primary : Colors.transparent,
+              ),
+              SizedBox(width: 8),
+              Text('Highest Amount'),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: SortBy.amountLowest,
+          child: Row(
+            children: [
+              Icon(
+                provider.sortBy == SortBy.amountLowest ? Icons.check : Icons.check_box_outline_blank,
+                color: provider.sortBy == SortBy.amountLowest ? Theme.of(context).colorScheme.primary : Colors.transparent,
+              ),
+              SizedBox(width: 8),
+              Text('Lowest Amount'),
+            ],
+          ),
+        ),
+      ],
+    ).then((value) {
+      if (value != null) {
+        provider.setSortBy(value);
+      }
+    });
+  }
+
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Expense Manager',
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
-        elevation: 2,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.category),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => CategoryManagementScreen()),
-              );
-            },
-            tooltip: 'Manage Categories',
-          ),
-          IconButton(
-            icon: Icon(Icons.label),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => TagManagementScreen()),
-              );
-            },
-            tooltip: 'Manage Tags',
-          ),
-        ],
+    return Consumer<ExpenseProvider>(
+      builder: (context, provider, child) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(
+              'Expense Manager',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            elevation: 2,
+            actions: [
+              IconButton(
+                icon: Icon(Icons.sort),
+                onPressed: () => _showSortMenu(context, provider),
+                tooltip: 'Sort',
+              ),
+              IconButton(
+                icon: Icon(Icons.category),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => CategoryManagementScreen()),
+                  );
+                },
+                tooltip: 'Manage Categories',
+              ),
+              IconButton(
+                icon: Icon(Icons.label),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => TagManagementScreen()),
+                  );
+                },
+                tooltip: 'Manage Tags',
+              ),
+            ],
         bottom: TabBar(
           controller: _tabController,
           tabs: [
@@ -92,35 +166,33 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             ),
           ],
         ),
-      ),
-      body: Consumer<ExpenseProvider>(
-        builder: (context, provider, child) {
-          return AnimatedSwitcher(
+          ),
+          body: AnimatedSwitcher(
             duration: Duration(milliseconds: 300),
-            child: provider.expenses.isEmpty
+            child: provider.sortedExpenses.isEmpty
                 ? _buildEmptyState(context)
                 : TabBarView(
                     key: ValueKey('expenses'),
                     controller: _tabController,
                     children: [
-                      _buildByDateTab(provider.expenses, provider),
-                      _buildByCategoryTab(provider.expenses, provider.categories),
+                      _buildByDateTab(provider.sortedExpenses, provider),
+                      _buildByCategoryTab(provider.sortedExpenses, provider.categories),
                     ],
                   ),
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => AddExpenseScreen()),
-          );
-        },
-        icon: Icon(Icons.add),
-        label: Text('Add Expense'),
-        tooltip: 'Add Expense',
-      ),
+          ),
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AddExpenseScreen()),
+              );
+            },
+            icon: Icon(Icons.add),
+            label: Text('Add Expense'),
+            tooltip: 'Add Expense',
+          ),
+        );
+      },
     );
   }
 
@@ -177,14 +249,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   Widget _buildByDateTab(List<Expense> expenses, ExpenseProvider provider) {
-    final sortedExpenses = List<Expense>.from(expenses)
-      ..sort((a, b) => b.date.compareTo(a.date));
-
+    // Expenses are already sorted by the provider
     return ListView.builder(
       padding: EdgeInsets.all(8),
-      itemCount: sortedExpenses.length,
+      itemCount: expenses.length,
       itemBuilder: (context, index) {
-        final expense = sortedExpenses[index];
+        final expense = expenses[index];
         return Card(
           margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           child: ListTile(
@@ -266,17 +336,30 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     final Map<String, List<Expense>> expensesByCategory = {};
 
     for (var expense in expenses) {
-      final categoryKey = expense.categoryId.isEmpty ? 'Uncategorized' : expense.categoryId;
-      if (!expensesByCategory.containsKey(categoryKey)) {
-        expensesByCategory[categoryKey] = [];
+      String categoryName;
+      if (expense.categoryId.isEmpty) {
+        categoryName = 'Uncategorized';
+      } else {
+        try {
+          final category = categories.firstWhere(
+            (cat) => cat.id == expense.categoryId,
+          );
+          categoryName = category.name;
+        } catch (e) {
+          categoryName = 'Unknown Category';
+        }
       }
-      expensesByCategory[categoryKey]!.add(expense);
+
+      if (!expensesByCategory.containsKey(categoryName)) {
+        expensesByCategory[categoryName] = [];
+      }
+      expensesByCategory[categoryName]!.add(expense);
     }
 
     return ListView(
       padding: EdgeInsets.all(8),
       children: expensesByCategory.entries.map((entry) {
-        final categoryId = entry.key;
+        final categoryName = entry.key;
         final categoryExpenses = entry.value;
         final totalAmount = categoryExpenses.fold(0.0, (sum, exp) => sum + exp.amount);
 
@@ -287,7 +370,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               child: Icon(Icons.category),
             ),
             title: Text(
-              categoryId,
+              categoryName,
               style: TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 16,

@@ -4,15 +4,43 @@ import 'package:localstorage/localstorage.dart';
 import '../models/expense.dart';
 import '../models/category.dart';
 import '../models/tag.dart';
+import '../models/expense_filter_options.dart';
 
 class ExpenseProvider with ChangeNotifier {
   List<Expense> _expenses = [];
   List<Category> _categories = [];
   List<Tag> _tags = [];
 
+  // Sorting state
+  SortBy _sortBy = SortBy.dateNewest;
+
   List<Expense> get expenses => _expenses;
   List<Category> get categories => _categories;
   List<Tag> get tags => _tags;
+  SortBy get sortBy => _sortBy;
+
+  // Get sorted expenses
+  List<Expense> get sortedExpenses {
+    var result = List<Expense>.from(_expenses);
+
+    // Apply sorting
+    switch (_sortBy) {
+      case SortBy.dateNewest:
+        result.sort((a, b) => b.date.compareTo(a.date));
+        break;
+      case SortBy.dateOldest:
+        result.sort((a, b) => a.date.compareTo(b.date));
+        break;
+      case SortBy.amountHighest:
+        result.sort((a, b) => b.amount.compareTo(a.amount));
+        break;
+      case SortBy.amountLowest:
+        result.sort((a, b) => a.amount.compareTo(b.amount));
+        break;
+    }
+
+    return result;
+  }
 
   ExpenseProvider() {
     _loadExpensesFromStorage();
@@ -121,6 +149,12 @@ class ExpenseProvider with ChangeNotifier {
   void removeTag(String id) {
     _tags.removeWhere((tag) => tag.id == id);
     _saveTagsToStorage();
+    notifyListeners();
+  }
+
+  // SORTING
+  void setSortBy(SortBy sortBy) {
+    _sortBy = sortBy;
     notifyListeners();
   }
 }
