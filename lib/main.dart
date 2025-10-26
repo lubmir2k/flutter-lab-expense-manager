@@ -12,7 +12,7 @@ Future<void> main() async {
 }
 class MyApp extends StatelessWidget {
   final LocalStorage localStorage;
-  const MyApp({Key? key, required this.localStorage}) : super(key: key);
+  const MyApp({super.key, required this.localStorage});
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -24,11 +24,11 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         initialRoute: '/',
         routes: {
-          '/': (context) => HomeScreen(), // Main entry point, HomeScreen
+          '/': (context) => const HomeScreen(), // Main entry point, HomeScreen
           '/manage_categories': (context) =>
-              CategoryManagementScreen(), // Route for managing categories
+              const CategoryManagementScreen(), // Route for managing categories
           '/manage_tags': (context) =>
-              TagManagementScreen(), // Route for managing tags
+              const TagManagementScreen(), // Route for managing tags
         },
         // Removed 'home:' since 'initialRoute' is used to define the home route
       ),

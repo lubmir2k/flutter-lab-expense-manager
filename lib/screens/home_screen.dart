@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/expense_provider.dart';
 import '../screens/add_expense_screen.dart';
-import '../screens/category_management_screen.dart';
-import '../screens/tag_management_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:collection/collection.dart';
 import '../models/expense.dart';
-import '../models/expense_category.dart';
+import '../models/expense_filter_options.dart';
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -25,19 +25,48 @@ class _HomeScreenState extends State<HomeScreen>
     _tabController.dispose();
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<ExpenseProvider>(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text("Expense Tracker"),
+        title: const Text("Expense Tracker"),
         backgroundColor: Colors.deepPurple[800],
         foregroundColor: Colors.white,
+        actions: [
+          PopupMenuButton<SortBy>(
+            onSelected: provider.setSortBy,
+            icon: const Icon(Icons.sort),
+            tooltip: 'Sort',
+            itemBuilder: (context) {
+              return SortBy.values.map((sortBy) {
+                return PopupMenuItem(
+                  value: sortBy,
+                  child: Row(
+                    children: [
+                      Visibility(
+                        visible: provider.sortBy == sortBy,
+                        maintainSize: true,
+                        maintainAnimation: true,
+                        maintainState: true,
+                        child: const Icon(Icons.check, color: Colors.deepPurple),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(sortBy.displayName),
+                    ],
+                  ),
+                );
+              }).toList();
+            },
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: Colors.white,
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white70,
-          tabs: [
+          tabs: const [
             Tab(text: "By Date"),
             Tab(text: "By Category"),
           ],
@@ -47,22 +76,22 @@ class _HomeScreenState extends State<HomeScreen>
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
-            DrawerHeader(
+            const DrawerHeader(
               decoration: BoxDecoration(color: Colors.deepPurple),
               child: Text('Menu',
                   style: TextStyle(color: Colors.white, fontSize: 24)),
             ),
             ListTile(
-              leading: Icon(Icons.category, color: Colors.deepPurple),
-              title: Text('Manage Categories'),
+              leading: const Icon(Icons.category, color: Colors.deepPurple),
+              title: const Text('Manage Categories'),
               onTap: () {
                 Navigator.pop(context); // This closes the drawer
                 Navigator.pushNamed(context, '/manage_categories');
               },
             ),
             ListTile(
-              leading: Icon(Icons.tag, color: Colors.deepPurple),
-              title: Text('Manage Tags'),
+              leading: const Icon(Icons.tag, color: Colors.deepPurple),
+              title: const Text('Manage Tags'),
               onTap: () {
                 Navigator.pop(context); // This closes the drawer
                 Navigator.pushNamed(context, '/manage_tags');
@@ -81,25 +110,25 @@ class _HomeScreenState extends State<HomeScreen>
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.deepPurple,
         onPressed: () => Navigator.push(context,
-            MaterialPageRoute(builder: (context) => AddExpenseScreen())),
+            MaterialPageRoute(builder: (context) => const AddExpenseScreen())),
         tooltip: 'Add Expense',
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }
   Widget buildExpensesByDate(BuildContext context) {
     return Consumer<ExpenseProvider>(
       builder: (context, provider, child) {
-        if (provider.expenses.isEmpty) {
+        if (provider.sortedExpenses.isEmpty) {
           return Center(
             child: Text("Click the + button to record expenses.",
                 style: TextStyle(color: Colors.grey[600], fontSize: 18)),
           );
         }
         return ListView.builder(
-          itemCount: provider.expenses.length,
+          itemCount: provider.sortedExpenses.length,
           itemBuilder: (context, index) {
-            final expense = provider.expenses[index];
+            final expense = provider.sortedExpenses[index];
             String formattedDate =
                 DateFormat('MMM dd, yyyy').format(expense.date);
             return Dismissible(
@@ -110,13 +139,13 @@ class _HomeScreenState extends State<HomeScreen>
               },
               background: Container(
                 color: Colors.red,
-                padding: EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 alignment: Alignment.centerRight,
-                child: Icon(Icons.delete, color: Colors.white),
+                child: const Icon(Icons.delete, color: Colors.white),
               ),
               child: Card(
                 color: Colors.purple[50],
-                margin: EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
                 child: ListTile(
                   title: Text(
                       "${expense.payee} - \$${expense.amount.toStringAsFixed(2)}"),
@@ -134,14 +163,14 @@ class _HomeScreenState extends State<HomeScreen>
   Widget buildExpensesByCategory(BuildContext context) {
     return Consumer<ExpenseProvider>(
       builder: (context, provider, child) {
-        if (provider.expenses.isEmpty) {
+        if (provider.sortedExpenses.isEmpty) {
           return Center(
             child: Text("Click the + button to record expenses.",
                 style: TextStyle(color: Colors.grey[600], fontSize: 18)),
           );
         }
         // Grouping expenses by category
-        var grouped = groupBy(provider.expenses, (Expense e) => e.categoryId);
+        var grouped = groupBy(provider.sortedExpenses, (Expense e) => e.categoryId);
         return ListView(
           children: grouped.entries.map((entry) {
             String categoryName = getCategoryNameById(
@@ -152,10 +181,10 @@ class _HomeScreenState extends State<HomeScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Padding(
-                  padding: EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.all(8.0),
                   child: Text(
                     "$categoryName - Total: \$${total.toStringAsFixed(2)}",
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Colors.deepPurple,
@@ -164,7 +193,7 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
                 ListView.builder(
                   physics:
-                      NeverScrollableScrollPhysics(), // to disable scrolling within the inner list view
+                      const NeverScrollableScrollPhysics(), // to disable scrolling within the inner list view
                   shrinkWrap:
                       true, // necessary to integrate a ListView within another ListView
                   itemCount: entry.value.length,
@@ -172,7 +201,7 @@ class _HomeScreenState extends State<HomeScreen>
                     Expense expense = entry.value[index];
                     return ListTile(
                       leading:
-                          Icon(Icons.monetization_on, color: Colors.deepPurple),
+                          const Icon(Icons.monetization_on, color: Colors.deepPurple),
                       title: Text(
                           "${expense.payee} - \$${expense.amount.toStringAsFixed(2)}"),
                       subtitle: Text(DateFormat('MMM dd, yyyy')

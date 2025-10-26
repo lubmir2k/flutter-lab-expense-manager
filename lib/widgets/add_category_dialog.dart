@@ -4,7 +4,7 @@ import '../models/expense_category.dart';
 import '../providers/expense_provider.dart';
 class AddCategoryDialog extends StatefulWidget {
   final Function(ExpenseCategory) onAdd;
-  AddCategoryDialog({required this.onAdd});
+  const AddCategoryDialog({super.key, required this.onAdd});
   @override
   _AddCategoryDialogState createState() => _AddCategoryDialogState();
 }
@@ -13,20 +13,20 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Add New Category'),
+      title: const Text('Add New Category'),
       content: TextField(
         controller: _controller,
-        decoration: InputDecoration(
+        decoration: const InputDecoration(
           labelText: 'Category Name',
         ),
       ),
       actions: [
         TextButton(
-          child: Text('Cancel'),
+          child: const Text('Cancel'),
           onPressed: () => Navigator.of(context).pop(),
         ),
         TextButton(
-          child: Text('Add'),
+          child: const Text('Add'),
           onPressed: () {
             var newCategory = ExpenseCategory(
                 id: DateTime.now().toString(), name: _controller.text);
