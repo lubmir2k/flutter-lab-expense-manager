@@ -11,6 +11,9 @@ class ExpenseProvider with ChangeNotifier {
   List<Expense> _expenses = [];
   // Sorting state
   SortBy _sortBy = SortBy.dateNewest;
+  // Cache for sorted expenses
+  List<Expense>? _cachedSortedExpenses;
+  bool _sortedExpensesCacheValid = false;
   // List of categories
   final List<ExpenseCategory> _categories = [
     ExpenseCategory(id: '1', name: 'Food', isDefault: true),
@@ -43,45 +46,52 @@ class ExpenseProvider with ChangeNotifier {
   List<Tag> get tags => _tags;
   SortBy get sortBy => _sortBy;
 
-  // Get sorted expenses
+  // Get sorted expenses (cached for performance)
   List<Expense> get sortedExpenses {
-    var result = List<Expense>.from(_expenses);
-
-    // Apply sorting
-    switch (_sortBy) {
-      case SortBy.dateNewest:
-        result.sort((a, b) => b.date.compareTo(a.date));
-        break;
-      case SortBy.dateOldest:
-        result.sort((a, b) => a.date.compareTo(b.date));
-        break;
-      case SortBy.amountHighest:
-        result.sort((a, b) => b.amount.compareTo(a.amount));
-        break;
-      case SortBy.amountLowest:
-        result.sort((a, b) => a.amount.compareTo(b.amount));
-        break;
+    if (_sortedExpensesCacheValid && _cachedSortedExpenses != null) {
+      return _cachedSortedExpenses!;
     }
 
-    return result;
+    _cachedSortedExpenses = List<Expense>.from(_expenses)
+      ..sort((a, b) {
+        switch (_sortBy) {
+          case SortBy.dateNewest:
+            return b.date.compareTo(a.date);
+          case SortBy.dateOldest:
+            return a.date.compareTo(b.date);
+          case SortBy.amountHighest:
+            return b.amount.compareTo(a.amount);
+          case SortBy.amountLowest:
+            return a.amount.compareTo(b.amount);
+        }
+      });
+
+    _sortedExpensesCacheValid = true;
+    return _cachedSortedExpenses!;
+  }
+
+  // Invalidate sorted expenses cache
+  void _invalidateSortedExpensesCache() {
+    _sortedExpensesCacheValid = false;
   }
 
   ExpenseProvider(this.storage) {
     _loadExpensesFromStorage();
   }
-  void _loadExpensesFromStorage() async {
-    // await storage.ready;
+  void _loadExpensesFromStorage() {
     var storedExpenses = storage.getItem('expenses');
     if (storedExpenses != null) {
       try {
         _expenses = List<Expense>.from(
           (jsonDecode(storedExpenses) as List).map((item) => Expense.fromJson(item)),
         );
+        _invalidateSortedExpensesCache();
         notifyListeners();
       } catch (e) {
         // Clear corrupted data for expenses only
         storage.removeItem('expenses');
         _expenses = [];
+        _invalidateSortedExpensesCache();
         notifyListeners();
       }
     }
@@ -89,6 +99,7 @@ class ExpenseProvider with ChangeNotifier {
   // Add an expense
   void addExpense(Expense expense) {
     _expenses.add(expense);
+    _invalidateSortedExpensesCache();
     _saveExpensesToStorage();
     notifyListeners();
   }
@@ -105,12 +116,14 @@ class ExpenseProvider with ChangeNotifier {
       // Add new expense
       _expenses.add(expense);
     }
+    _invalidateSortedExpensesCache();
     _saveExpensesToStorage(); // Save the updated list to local storage
     notifyListeners();
   }
   // Delete an expense
   void deleteExpense(String id) {
     _expenses.removeWhere((expense) => expense.id == id);
+    _invalidateSortedExpensesCache();
     _saveExpensesToStorage(); // Save the updated list to local storage
     notifyListeners();
   }
@@ -140,6 +153,7 @@ class ExpenseProvider with ChangeNotifier {
   }
   void removeExpense(String id) {
     _expenses.removeWhere((expense) => expense.id == id);
+    _invalidateSortedExpensesCache();
     _saveExpensesToStorage(); // Save the updated list to local storage
     notifyListeners();
   }
@@ -147,6 +161,7 @@ class ExpenseProvider with ChangeNotifier {
   // SORTING
   void setSortBy(SortBy sortBy) {
     _sortBy = sortBy;
+    _invalidateSortedExpensesCache();
     notifyListeners();
   }
 }

@@ -27,35 +27,6 @@ class _HomeScreenState extends State<HomeScreen>
     super.dispose();
   }
 
-  void _showSortMenu(BuildContext context, ExpenseProvider provider) {
-    showMenu(
-      context: context,
-      position: RelativeRect.fromLTRB(1000, 80, 0, 0),
-      items: SortBy.values.map((sortBy) {
-        return PopupMenuItem(
-          value: sortBy,
-          child: Row(
-            children: [
-              Visibility(
-                visible: provider.sortBy == sortBy,
-                maintainSize: true,
-                maintainAnimation: true,
-                maintainState: true,
-                child: Icon(Icons.check, color: Colors.deepPurple),
-              ),
-              SizedBox(width: 8),
-              Text(sortBy.displayName),
-            ],
-          ),
-        );
-      }).toList(),
-    ).then((value) {
-      if (value != null) {
-        provider.setSortBy(value);
-      }
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<ExpenseProvider>(context);
@@ -65,10 +36,30 @@ class _HomeScreenState extends State<HomeScreen>
         backgroundColor: Colors.deepPurple[800],
         foregroundColor: Colors.white,
         actions: [
-          IconButton(
+          PopupMenuButton<SortBy>(
+            onSelected: provider.setSortBy,
             icon: Icon(Icons.sort),
-            onPressed: () => _showSortMenu(context, provider),
             tooltip: 'Sort',
+            itemBuilder: (context) {
+              return SortBy.values.map((sortBy) {
+                return PopupMenuItem(
+                  value: sortBy,
+                  child: Row(
+                    children: [
+                      Visibility(
+                        visible: provider.sortBy == sortBy,
+                        maintainSize: true,
+                        maintainAnimation: true,
+                        maintainState: true,
+                        child: Icon(Icons.check, color: Colors.deepPurple),
+                      ),
+                      SizedBox(width: 8),
+                      Text(sortBy.displayName),
+                    ],
+                  ),
+                );
+              }).toList();
+            },
           ),
         ],
         bottom: TabBar(
