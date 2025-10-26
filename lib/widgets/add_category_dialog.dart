@@ -12,17 +12,23 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
   final TextEditingController _nameController = TextEditingController();
 
   void _saveCategory(BuildContext context) {
-    if (_nameController.text.isEmpty) {
+    if (_nameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please enter a category name'),
+          backgroundColor: Colors.red,
+        ),
+      );
       return;
     }
 
     final category = Category(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
-      name: _nameController.text,
+      name: _nameController.text.trim(),
     );
 
     Provider.of<ExpenseProvider>(context, listen: false).addCategory(category);
-    Navigator.pop(context);
+    Navigator.pop(context, true);
   }
 
   @override

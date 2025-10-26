@@ -12,17 +12,23 @@ class _AddTagDialogState extends State<AddTagDialog> {
   final TextEditingController _nameController = TextEditingController();
 
   void _saveTag(BuildContext context) {
-    if (_nameController.text.isEmpty) {
+    if (_nameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please enter a tag name'),
+          backgroundColor: Colors.red,
+        ),
+      );
       return;
     }
 
     final tag = Tag(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
-      name: _nameController.text,
+      name: _nameController.text.trim(),
     );
 
     Provider.of<ExpenseProvider>(context, listen: false).addTag(tag);
-    Navigator.pop(context);
+    Navigator.pop(context, true);
   }
 
   @override
