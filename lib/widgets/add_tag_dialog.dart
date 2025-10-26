@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../models/tag.dart';
+import '../providers/expense_provider.dart';
 
 class AddTagDialog extends StatefulWidget {
   @override
@@ -6,8 +9,21 @@ class AddTagDialog extends StatefulWidget {
 }
 
 class _AddTagDialogState extends State<AddTagDialog> {
-  // Controller to capture the user's input for the tag name
   final TextEditingController _nameController = TextEditingController();
+
+  void _saveTag(BuildContext context) {
+    if (_nameController.text.isEmpty) {
+      return;
+    }
+
+    final tag = Tag(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      name: _nameController.text,
+    );
+
+    Provider.of<ExpenseProvider>(context, listen: false).addTag(tag);
+    Navigator.pop(context);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,27 +31,17 @@ class _AddTagDialogState extends State<AddTagDialog> {
       title: Text('Add Tag'),
       content: TextField(
         controller: _nameController,
-        autofocus: true,
         decoration: InputDecoration(labelText: 'Tag Name'),
+        autofocus: true,
       ),
       actions: <Widget>[
-        // Cancel button
         TextButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
+          onPressed: () => Navigator.pop(context),
           child: Text('Cancel'),
         ),
-        // Add button
-        ElevatedButton(
-          onPressed: () {
-            final tagName = _nameController.text;
-            if (tagName.isNotEmpty) {
-              // Close the dialog and return the entered text
-              Navigator.of(context).pop(tagName);
-            }
-          },
-          child: Text('Add'),
+        TextButton(
+          onPressed: () => _saveTag(context),
+          child: Text('Save'),
         ),
       ],
     );
@@ -43,7 +49,6 @@ class _AddTagDialogState extends State<AddTagDialog> {
 
   @override
   void dispose() {
-    // Dispose of the controller!
     _nameController.dispose();
     super.dispose();
   }

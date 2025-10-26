@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:localstorage/localstorage.dart';
 import '../models/expense.dart';
@@ -5,42 +6,37 @@ import '../models/category.dart';
 import '../models/tag.dart';
 
 class ExpenseProvider with ChangeNotifier {
-  final LocalStorage storage;
-  
-  // Private lists for the state
   List<Expense> _expenses = [];
   List<Category> _categories = [];
   List<Tag> _tags = [];
 
-  // Public getters to access the state
   List<Expense> get expenses => _expenses;
   List<Category> get categories => _categories;
   List<Tag> get tags => _tags;
 
-  // Constructor: Loads all data upon initialization
-  ExpenseProvider(this.storage) {
+  ExpenseProvider() {
     _loadExpensesFromStorage();
     _loadCategoriesFromStorage();
     _loadTagsFromStorage();
   }
 
-  // ====================================================================
-  // 1. EXPENSE MANAGEMENT
-  // ====================================================================
-
-  void _loadExpensesFromStorage() async {
-    await storage.ready;
-    var storedExpenses = storage.getItem('expenses');
+  // EXPENSE MANAGEMENT
+  void _loadExpensesFromStorage() {
+    var storedExpenses = localStorage.getItem('expenses');
     if (storedExpenses != null) {
-      _expenses = List<Expense>.from(
-        (storedExpenses as List).map((item) => Expense.fromJson(item)),
-      );
-      notifyListeners();
+      try {
+        _expenses = List<Expense>.from(
+          (jsonDecode(storedExpenses) as List).map((item) => Expense.fromJson(item)),
+        );
+        notifyListeners();
+      } catch (e) {
+        _expenses = [];
+      }
     }
   }
 
   void _saveExpensesToStorage() {
-    storage.setItem('expenses', _expenses.map((e) => e.toJson()).toList());
+    localStorage.setItem('expenses', jsonEncode(_expenses.map((e) => e.toJson()).toList()));
   }
 
   void addExpense(Expense expense) {
@@ -66,23 +62,23 @@ class ExpenseProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // ====================================================================
-  // 2. CATEGORY MANAGEMENT
-  // ====================================================================
-
-  void _loadCategoriesFromStorage() async {
-    await storage.ready;
-    var storedCategories = storage.getItem('categories');
+  // CATEGORY MANAGEMENT
+  void _loadCategoriesFromStorage() {
+    var storedCategories = localStorage.getItem('categories');
     if (storedCategories != null) {
-      _categories = List<Category>.from(
-        (storedCategories as List).map((item) => Category.fromJson(item)),
-      );
-      notifyListeners();
+      try {
+        _categories = List<Category>.from(
+          (jsonDecode(storedCategories) as List).map((item) => Category.fromJson(item)),
+        );
+        notifyListeners();
+      } catch (e) {
+        _categories = [];
+      }
     }
   }
 
   void _saveCategoriesToStorage() {
-    storage.setItem('categories', _categories.map((c) => c.toJson()).toList());
+    localStorage.setItem('categories', jsonEncode(_categories.map((c) => c.toJson()).toList()));
   }
 
   void addCategory(Category category) {
@@ -93,28 +89,27 @@ class ExpenseProvider with ChangeNotifier {
 
   void removeCategory(String id) {
     _categories.removeWhere((category) => category.id == id);
-    // Note: In a robust app, you'd also check and update/remove related expenses here!
     _saveCategoriesToStorage();
     notifyListeners();
   }
 
-  // ====================================================================
-  // 3. TAG MANAGEMENT
-  // ====================================================================
-
-  void _loadTagsFromStorage() async {
-    await storage.ready;
-    var storedTags = storage.getItem('tags');
+  // TAG MANAGEMENT
+  void _loadTagsFromStorage() {
+    var storedTags = localStorage.getItem('tags');
     if (storedTags != null) {
-      _tags = List<Tag>.from(
-        (storedTags as List).map((item) => Tag.fromJson(item)),
-      );
-      notifyListeners();
+      try {
+        _tags = List<Tag>.from(
+          (jsonDecode(storedTags) as List).map((item) => Tag.fromJson(item)),
+        );
+        notifyListeners();
+      } catch (e) {
+        _tags = [];
+      }
     }
   }
 
   void _saveTagsToStorage() {
-    storage.setItem('tags', _tags.map((t) => t.toJson()).toList());
+    localStorage.setItem('tags', jsonEncode(_tags.map((t) => t.toJson()).toList()));
   }
 
   void addTag(Tag tag) {

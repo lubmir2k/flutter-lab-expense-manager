@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../models/category.dart';
+import '../providers/expense_provider.dart';
 
 class AddCategoryDialog extends StatefulWidget {
   @override
@@ -6,37 +9,39 @@ class AddCategoryDialog extends StatefulWidget {
 }
 
 class _AddCategoryDialogState extends State<AddCategoryDialog> {
-  // Controller to capture the user's input from the TextField
   final TextEditingController _nameController = TextEditingController();
+
+  void _saveCategory(BuildContext context) {
+    if (_nameController.text.isEmpty) {
+      return;
+    }
+
+    final category = Category(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      name: _nameController.text,
+    );
+
+    Provider.of<ExpenseProvider>(context, listen: false).addCategory(category);
+    Navigator.pop(context);
+  }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text('Add Category'),
       content: TextField(
-        controller: _nameController, // Link the controller to the text field
-        autofocus: true, // Automatically focus the text field when the dialog opens
+        controller: _nameController,
         decoration: InputDecoration(labelText: 'Category Name'),
+        autofocus: true,
       ),
       actions: <Widget>[
-        // Cancel button: simply closes the dialog
         TextButton(
-          onPressed: () {
-            // Dismiss the dialog without returning a value (or returning null)
-            Navigator.of(context).pop(); 
-          },
+          onPressed: () => Navigator.pop(context),
           child: Text('Cancel'),
         ),
-        // Add button: validates input and returns the category name
-        ElevatedButton(
-          onPressed: () {
-            final categoryName = _nameController.text;
-            if (categoryName.isNotEmpty) {
-              // Close the dialog and pass the entered text back to the caller
-              Navigator.of(context).pop(categoryName); 
-            }
-          },
-          child: Text('Add'),
+        TextButton(
+          onPressed: () => _saveCategory(context),
+          child: Text('Save'),
         ),
       ],
     );
@@ -44,7 +49,6 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
 
   @override
   void dispose() {
-    // Crucial: dispose of the TextEditingController to prevent memory leaks!
     _nameController.dispose();
     super.dispose();
   }
