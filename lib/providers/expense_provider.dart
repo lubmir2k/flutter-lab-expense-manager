@@ -1,8 +1,10 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import '../models/expense.dart';
 import '../models/expense_category.dart';
 import '../models/tag.dart';
 import '../models/expense_filter_options.dart';
+import '../models/chart_data.dart';
 import 'package:localstorage/localstorage.dart';
 import 'dart:convert';
 class ExpenseProvider with ChangeNotifier {
@@ -149,5 +151,138 @@ class ExpenseProvider with ChangeNotifier {
     _sortBy = sortBy;
     _invalidateSortedExpensesCache();
     notifyListeners();
+  }
+
+  // ANALYTICS METHODS
+
+  /// Get expenses filtered by time period
+  List<Expense> getExpensesByTimePeriod(ChartTimePeriod period) {
+    if (period == ChartTimePeriod.allTime) {
+      return List.from(_expenses);
+    }
+
+    final now = DateTime.now();
+    final months = period.months!;
+
+    // Calculate cutoff date by subtracting months properly
+    int targetYear = now.year;
+    int targetMonth = now.month - months;
+
+    // Handle year rollover
+    while (targetMonth <= 0) {
+      targetMonth += 12;
+      targetYear -= 1;
+    }
+
+    final cutoffDate = DateTime(targetYear, targetMonth, now.day);
+
+    return _expenses.where((expense) {
+      return expense.date.isAfter(cutoffDate) || expense.date.isAtSameMomentAs(cutoffDate);
+    }).toList();
+  }
+
+  /// Get category chart data with totals and percentages
+  List<CategoryChartData> getCategoryChartData(ChartTimePeriod period) {
+    final filteredExpenses = getExpensesByTimePeriod(period);
+
+    if (filteredExpenses.isEmpty) {
+      return [];
+    }
+
+    // Calculate total for percentages
+    final grandTotal = filteredExpenses.fold<double>(
+      0.0,
+      (sum, expense) => sum + expense.amount,
+    );
+
+    // Group expenses by category and calculate totals
+    final Map<String, double> categoryTotals = {};
+    for (final expense in filteredExpenses) {
+      categoryTotals[expense.categoryId] =
+          (categoryTotals[expense.categoryId] ?? 0.0) + expense.amount;
+    }
+
+    // Define colors for categories
+    final categoryColors = [
+      Colors.deepPurple,
+      Colors.blue,
+      Colors.green,
+      Colors.orange,
+      Colors.red,
+      Colors.teal,
+      Colors.pink,
+      Colors.amber,
+      Colors.indigo,
+      Colors.cyan,
+    ];
+
+    // Create CategoryChartData list
+    final List<CategoryChartData> chartDataList = [];
+    int colorIndex = 0;
+
+    for (final entry in categoryTotals.entries) {
+      final category = _categories.firstWhere(
+        (cat) => cat.id == entry.key,
+        orElse: () => ExpenseCategory(id: entry.key, name: 'Unknown'),
+      );
+
+      final percentage = (entry.value / grandTotal) * 100;
+      final color = categoryColors[colorIndex % categoryColors.length];
+
+      chartDataList.add(CategoryChartData(
+        categoryId: entry.key,
+        categoryName: category.name,
+        amount: entry.value,
+        percentage: percentage,
+        color: color,
+      ));
+
+      colorIndex++;
+    }
+
+    // Sort by amount descending
+    chartDataList.sort((a, b) => b.amount.compareTo(a.amount));
+
+    return chartDataList;
+  }
+
+  /// Get monthly chart data for spending trends
+  List<MonthlyChartData> getMonthlyChartData(ChartTimePeriod period) {
+    final filteredExpenses = getExpensesByTimePeriod(period);
+
+    if (filteredExpenses.isEmpty) {
+      return [];
+    }
+
+    // Group expenses by month
+    final Map<DateTime, double> monthlyTotals = {};
+
+    for (final expense in filteredExpenses) {
+      // Normalize to first day of month for grouping
+      final monthKey = DateTime(expense.date.year, expense.date.month, 1);
+      monthlyTotals[monthKey] = (monthlyTotals[monthKey] ?? 0.0) + expense.amount;
+    }
+
+    // Convert to MonthlyChartData list
+    final chartDataList = monthlyTotals.entries.map((entry) {
+      return MonthlyChartData(
+        month: entry.key,
+        amount: entry.value,
+      );
+    }).toList();
+
+    // Sort chronologically
+    chartDataList.sort((a, b) => a.month.compareTo(b.month));
+
+    return chartDataList;
+  }
+
+  /// Get total spending for a time period
+  double getTotalForPeriod(ChartTimePeriod period) {
+    final filteredExpenses = getExpensesByTimePeriod(period);
+    return filteredExpenses.fold<double>(
+      0.0,
+      (sum, expense) => sum + expense.amount,
+    );
   }
 }
