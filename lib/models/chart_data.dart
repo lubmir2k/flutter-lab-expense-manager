@@ -81,6 +81,22 @@ class MonthlyChartData {
   final DateTime month;
   final double amount;
 
+  /// Month abbreviations (shared across getters)
+  static const _monthNames = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec'
+  ];
+
   const MonthlyChartData({
     required this.month,
     required this.amount,
@@ -88,40 +104,12 @@ class MonthlyChartData {
 
   /// Get month label in format "Jan 2024"
   String get monthLabel {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    return '${months[month.month - 1]} ${month.year}';
+    return '${_monthNames[month.month - 1]} ${month.year}';
   }
 
   /// Get short month label in format "Jan"
   String get shortMonthLabel {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    return months[month.month - 1];
+    return _monthNames[month.month - 1];
   }
 
   @override
