@@ -4,7 +4,6 @@ import '../providers/expense_provider.dart';
 import '../models/chart_data.dart';
 import '../widgets/time_period_filter.dart';
 import '../widgets/category_pie_chart.dart';
-import '../widgets/category_bar_chart.dart';
 import '../widgets/monthly_line_chart.dart';
 
 /// Analytics screen displaying expense data through various chart types
@@ -23,7 +22,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
@@ -70,7 +69,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
           unselectedLabelColor: colorScheme.onPrimary.withOpacity(0.7),
           tabs: const [
             Tab(text: 'Pie'),
-            Tab(text: 'Bar'),
             Tab(text: 'Line'),
           ],
         ),
@@ -96,8 +94,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
               children: [
                 // Pie Chart Tab
                 CategoryPieChart(data: categoryData),
-                // Bar Chart Tab
-                CategoryBarChart(data: categoryData),
                 // Line Chart Tab
                 MonthlyLineChart(data: monthlyData),
               ],

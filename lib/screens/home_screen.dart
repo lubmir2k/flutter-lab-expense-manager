@@ -97,6 +97,14 @@ class _HomeScreenState extends State<HomeScreen>
                 Navigator.pushNamed(context, '/manage_tags');
               },
             ),
+            ListTile(
+              leading: const Icon(Icons.analytics, color: Colors.deepPurple),
+              title: const Text('Analytics'),
+              onTap: () {
+                Navigator.pop(context); // This closes the drawer
+                Navigator.pushNamed(context, '/analytics');
+              },
+            ),
           ],
         ),
       ),
