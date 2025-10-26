@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:collection/collection.dart';
 import '../models/expense.dart';
 import '../models/expense_category.dart';
+import '../models/expense_filter_options.dart';
 class HomeScreen extends StatefulWidget {
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -25,13 +26,87 @@ class _HomeScreenState extends State<HomeScreen>
     _tabController.dispose();
     super.dispose();
   }
+
+  void _showSortMenu(BuildContext context, ExpenseProvider provider) {
+    showMenu(
+      context: context,
+      position: RelativeRect.fromLTRB(1000, 80, 0, 0),
+      items: [
+        PopupMenuItem(
+          value: SortBy.dateNewest,
+          child: Row(
+            children: [
+              Icon(
+                provider.sortBy == SortBy.dateNewest ? Icons.check : Icons.check_box_outline_blank,
+                color: provider.sortBy == SortBy.dateNewest ? Colors.deepPurple : Colors.transparent,
+              ),
+              SizedBox(width: 8),
+              Text('Newest First'),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: SortBy.dateOldest,
+          child: Row(
+            children: [
+              Icon(
+                provider.sortBy == SortBy.dateOldest ? Icons.check : Icons.check_box_outline_blank,
+                color: provider.sortBy == SortBy.dateOldest ? Colors.deepPurple : Colors.transparent,
+              ),
+              SizedBox(width: 8),
+              Text('Oldest First'),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: SortBy.amountHighest,
+          child: Row(
+            children: [
+              Icon(
+                provider.sortBy == SortBy.amountHighest ? Icons.check : Icons.check_box_outline_blank,
+                color: provider.sortBy == SortBy.amountHighest ? Colors.deepPurple : Colors.transparent,
+              ),
+              SizedBox(width: 8),
+              Text('Highest Amount'),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: SortBy.amountLowest,
+          child: Row(
+            children: [
+              Icon(
+                provider.sortBy == SortBy.amountLowest ? Icons.check : Icons.check_box_outline_blank,
+                color: provider.sortBy == SortBy.amountLowest ? Colors.deepPurple : Colors.transparent,
+              ),
+              SizedBox(width: 8),
+              Text('Lowest Amount'),
+            ],
+          ),
+        ),
+      ],
+    ).then((value) {
+      if (value != null) {
+        provider.setSortBy(value);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<ExpenseProvider>(context);
     return Scaffold(
       appBar: AppBar(
         title: Text("Expense Tracker"),
         backgroundColor: Colors.deepPurple[800],
         foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.sort),
+            onPressed: () => _showSortMenu(context, provider),
+            tooltip: 'Sort',
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: Colors.white,
@@ -90,16 +165,16 @@ class _HomeScreenState extends State<HomeScreen>
   Widget buildExpensesByDate(BuildContext context) {
     return Consumer<ExpenseProvider>(
       builder: (context, provider, child) {
-        if (provider.expenses.isEmpty) {
+        if (provider.sortedExpenses.isEmpty) {
           return Center(
             child: Text("Click the + button to record expenses.",
                 style: TextStyle(color: Colors.grey[600], fontSize: 18)),
           );
         }
         return ListView.builder(
-          itemCount: provider.expenses.length,
+          itemCount: provider.sortedExpenses.length,
           itemBuilder: (context, index) {
-            final expense = provider.expenses[index];
+            final expense = provider.sortedExpenses[index];
             String formattedDate =
                 DateFormat('MMM dd, yyyy').format(expense.date);
             return Dismissible(
@@ -134,14 +209,14 @@ class _HomeScreenState extends State<HomeScreen>
   Widget buildExpensesByCategory(BuildContext context) {
     return Consumer<ExpenseProvider>(
       builder: (context, provider, child) {
-        if (provider.expenses.isEmpty) {
+        if (provider.sortedExpenses.isEmpty) {
           return Center(
             child: Text("Click the + button to record expenses.",
                 style: TextStyle(color: Colors.grey[600], fontSize: 18)),
           );
         }
         // Grouping expenses by category
-        var grouped = groupBy(provider.expenses, (Expense e) => e.categoryId);
+        var grouped = groupBy(provider.sortedExpenses, (Expense e) => e.categoryId);
         return ListView(
           children: grouped.entries.map((entry) {
             String categoryName = getCategoryNameById(

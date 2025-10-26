@@ -2,12 +2,15 @@ import 'package:flutter/foundation.dart';
 import '../models/expense.dart';
 import '../models/expense_category.dart';
 import '../models/tag.dart';
+import '../models/expense_filter_options.dart';
 import 'package:localstorage/localstorage.dart';
 import 'dart:convert';
 class ExpenseProvider with ChangeNotifier {
   final LocalStorage storage;
   // List of expenses
   List<Expense> _expenses = [];
+  // Sorting state
+  SortBy _sortBy = SortBy.dateNewest;
   // List of categories
   final List<ExpenseCategory> _categories = [
     ExpenseCategory(id: '1', name: 'Food', isDefault: true),
@@ -38,6 +41,31 @@ class ExpenseProvider with ChangeNotifier {
   List<Expense> get expenses => _expenses;
   List<ExpenseCategory> get categories => _categories;
   List<Tag> get tags => _tags;
+  SortBy get sortBy => _sortBy;
+
+  // Get sorted expenses
+  List<Expense> get sortedExpenses {
+    var result = List<Expense>.from(_expenses);
+
+    // Apply sorting
+    switch (_sortBy) {
+      case SortBy.dateNewest:
+        result.sort((a, b) => b.date.compareTo(a.date));
+        break;
+      case SortBy.dateOldest:
+        result.sort((a, b) => a.date.compareTo(b.date));
+        break;
+      case SortBy.amountHighest:
+        result.sort((a, b) => b.amount.compareTo(a.amount));
+        break;
+      case SortBy.amountLowest:
+        result.sort((a, b) => a.amount.compareTo(b.amount));
+        break;
+    }
+
+    return result;
+  }
+
   ExpenseProvider(this.storage) {
     _loadExpensesFromStorage();
   }
@@ -45,10 +73,17 @@ class ExpenseProvider with ChangeNotifier {
     // await storage.ready;
     var storedExpenses = storage.getItem('expenses');
     if (storedExpenses != null) {
-      _expenses = List<Expense>.from(
-        (storedExpenses as List).map((item) => Expense.fromJson(item)),
-      );
-      notifyListeners();
+      try {
+        _expenses = List<Expense>.from(
+          (storedExpenses as List).map((item) => Expense.fromJson(item)),
+        );
+        notifyListeners();
+      } catch (e) {
+        // Clear corrupted data
+        storage.clear();
+        _expenses = [];
+        notifyListeners();
+      }
     }
   }
   // Add an expense
@@ -106,6 +141,12 @@ class ExpenseProvider with ChangeNotifier {
   void removeExpense(String id) {
     _expenses.removeWhere((expense) => expense.id == id);
     _saveExpensesToStorage(); // Save the updated list to local storage
+    notifyListeners();
+  }
+
+  // SORTING
+  void setSortBy(SortBy sortBy) {
+    _sortBy = sortBy;
     notifyListeners();
   }
 }
