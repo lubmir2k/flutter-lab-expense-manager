@@ -31,60 +31,24 @@ class _HomeScreenState extends State<HomeScreen>
     showMenu(
       context: context,
       position: RelativeRect.fromLTRB(1000, 80, 0, 0),
-      items: [
-        PopupMenuItem(
-          value: SortBy.dateNewest,
+      items: SortBy.values.map((sortBy) {
+        return PopupMenuItem(
+          value: sortBy,
           child: Row(
             children: [
-              Icon(
-                provider.sortBy == SortBy.dateNewest ? Icons.check : Icons.check_box_outline_blank,
-                color: provider.sortBy == SortBy.dateNewest ? Colors.deepPurple : Colors.transparent,
+              Visibility(
+                visible: provider.sortBy == sortBy,
+                maintainSize: true,
+                maintainAnimation: true,
+                maintainState: true,
+                child: Icon(Icons.check, color: Colors.deepPurple),
               ),
               SizedBox(width: 8),
-              Text('Newest First'),
+              Text(sortBy.displayName),
             ],
           ),
-        ),
-        PopupMenuItem(
-          value: SortBy.dateOldest,
-          child: Row(
-            children: [
-              Icon(
-                provider.sortBy == SortBy.dateOldest ? Icons.check : Icons.check_box_outline_blank,
-                color: provider.sortBy == SortBy.dateOldest ? Colors.deepPurple : Colors.transparent,
-              ),
-              SizedBox(width: 8),
-              Text('Oldest First'),
-            ],
-          ),
-        ),
-        PopupMenuItem(
-          value: SortBy.amountHighest,
-          child: Row(
-            children: [
-              Icon(
-                provider.sortBy == SortBy.amountHighest ? Icons.check : Icons.check_box_outline_blank,
-                color: provider.sortBy == SortBy.amountHighest ? Colors.deepPurple : Colors.transparent,
-              ),
-              SizedBox(width: 8),
-              Text('Highest Amount'),
-            ],
-          ),
-        ),
-        PopupMenuItem(
-          value: SortBy.amountLowest,
-          child: Row(
-            children: [
-              Icon(
-                provider.sortBy == SortBy.amountLowest ? Icons.check : Icons.check_box_outline_blank,
-                color: provider.sortBy == SortBy.amountLowest ? Colors.deepPurple : Colors.transparent,
-              ),
-              SizedBox(width: 8),
-              Text('Lowest Amount'),
-            ],
-          ),
-        ),
-      ],
+        );
+      }).toList(),
     ).then((value) {
       if (value != null) {
         provider.setSortBy(value);

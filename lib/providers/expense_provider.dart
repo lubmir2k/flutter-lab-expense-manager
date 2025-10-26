@@ -75,12 +75,12 @@ class ExpenseProvider with ChangeNotifier {
     if (storedExpenses != null) {
       try {
         _expenses = List<Expense>.from(
-          (storedExpenses as List).map((item) => Expense.fromJson(item)),
+          (jsonDecode(storedExpenses) as List).map((item) => Expense.fromJson(item)),
         );
         notifyListeners();
       } catch (e) {
-        // Clear corrupted data
-        storage.clear();
+        // Clear corrupted data for expenses only
+        storage.removeItem('expenses');
         _expenses = [];
         notifyListeners();
       }
