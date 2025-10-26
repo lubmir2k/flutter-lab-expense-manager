@@ -73,7 +73,7 @@ class MonthlyLineChart extends StatelessWidget {
           ),
           borderData: FlBorderData(
             show: true,
-            border: Border.all(color: Colors.grey.withOpacity(0.3)),
+            border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
           ),
           minX: 0,
           maxX: (data.length - 1).toDouble(),
@@ -99,7 +99,7 @@ class MonthlyLineChart extends StatelessWidget {
               ),
               belowBarData: BarAreaData(
                 show: true,
-                color: colorScheme.primary.withOpacity(0.1),
+                color: colorScheme.primary.withValues(alpha: 0.1),
               ),
             ),
           ],

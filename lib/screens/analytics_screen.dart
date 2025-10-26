@@ -66,7 +66,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
           controller: _tabController,
           indicatorColor: colorScheme.onPrimary,
           labelColor: colorScheme.onPrimary,
-          unselectedLabelColor: colorScheme.onPrimary.withOpacity(0.7),
+          unselectedLabelColor: colorScheme.onPrimary.withValues(alpha: 0.7),
           tabs: const [
             Tab(text: 'Pie'),
             Tab(text: 'Line'),

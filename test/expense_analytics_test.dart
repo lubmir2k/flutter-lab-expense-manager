@@ -5,7 +5,6 @@ import 'package:localstorage/localstorage.dart';
 import 'package:expense_app/providers/expense_provider.dart';
 import 'package:expense_app/models/expense.dart';
 import 'package:expense_app/models/chart_data.dart';
-import 'package:flutter/material.dart';
 
 @GenerateMocks([LocalStorage])
 import 'expense_provider_test.mocks.dart';

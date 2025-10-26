@@ -6,16 +6,12 @@ import 'package:expense_app/models/chart_data.dart';
 void main() {
   group('TimePeriodFilter Widget Tests', () {
     testWidgets('renders all time period options', (WidgetTester tester) async {
-      ChartTimePeriod? selectedPeriod;
-
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: TimePeriodFilter(
               selectedPeriod: ChartTimePeriod.last3Months,
-              onPeriodChanged: (period) {
-                selectedPeriod = period;
-              },
+              onPeriodChanged: (period) {},
             ),
           ),
         ),
